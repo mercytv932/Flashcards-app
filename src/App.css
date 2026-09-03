@@ -239,14 +239,21 @@ nav button:nth-child(2):hover {
   gap: 8px;
 }
 
-.modal input {
+.modal input,
+.modal textarea {
   width: 100%;
   padding: 10px 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
 }
 
-.modal input:focus {
+.modal textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal input:focus,
+.modal textarea:focus {
   outline: 2px solid #93c5fd;
   outline-offset: 1px;
 }

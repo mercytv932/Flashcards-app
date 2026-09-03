@@ -1,12 +1,26 @@
 import { useState } from "react";
 import "./App.css";
+
+type Card = {
+  front: string;
+  back: string;
+};
+
 export default function App() {
   const [decks, setDecks] = useState(["JavaScript", "React", "TypeScript"]);
+  const [cardsByDeck, setCardsByDeck] = useState<Record<string, Card[]>>({
+    JavaScript: [],
+    React: [],
+    TypeScript: [],
+  });
   const [activeDeck, setActiveDeck] = useState("JavaScript");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"new" | "edit">("new");
   const [newDeckName, setNewDeckName] = useState("");
+  const [cardFront, setCardFront] = useState("");
+  const [cardBack, setCardBack] = useState("");
 
   function openNewDeckModal() {
     setModalMode("new");
@@ -28,8 +42,13 @@ export default function App() {
 
     if (modalMode === "new") {
       setDecks([...decks, deckName]);
+      setCardsByDeck({ ...cardsByDeck, [deckName]: [] });
     } else {
       setDecks(decks.map((deck) => (deck === activeDeck ? deckName : deck)));
+      const updatedCardsByDeck = { ...cardsByDeck };
+      updatedCardsByDeck[deckName] = cardsByDeck[activeDeck] ?? [];
+      delete updatedCardsByDeck[activeDeck];
+      setCardsByDeck(updatedCardsByDeck);
       setActiveDeck(deckName);
     }
 
@@ -43,6 +62,30 @@ export default function App() {
     setActiveDeck(remainingDecks[0] ?? "");
     setIsDeleteModalOpen(false);
   }
+
+  function openNewCardModal() {
+    setCardFront("");
+    setCardBack("");
+    setIsCardModalOpen(true);
+  }
+
+  function handleAddCard(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const front = cardFront.trim();
+    const back = cardBack.trim();
+    if (!front || !back) return;
+
+    setCardsByDeck({
+      ...cardsByDeck,
+      [activeDeck]: [...(cardsByDeck[activeDeck] ?? []), { front, back }],
+    });
+    setCardFront("");
+    setCardBack("");
+    setIsCardModalOpen(false);
+  }
+
+  const activeCards = cardsByDeck[activeDeck] ?? [];
 
   return (
     <div className="App">
@@ -88,12 +131,12 @@ export default function App() {
 
                 <input type="search" placeholder="Search cards..." />
                 <button>Shuffle</button>
-                <button>New Card</button>
+                <button onClick={openNewCardModal}>New Card</button>
               </section>
 
               <section>
                 <div>
-                  <p>Flashcard question goes here.</p>
+                  <p>{activeCards[0]?.front ?? "No cards yet."}</p>
                 </div>
               </section>
 
@@ -167,6 +210,45 @@ export default function App() {
                 Delete
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {isCardModalOpen && (
+        <div className="modal-backdrop">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-card-title"
+          >
+            <h2 id="new-card-title">Create New Card</h2>
+            <form onSubmit={handleAddCard}>
+              <label htmlFor="card-front">Front</label>
+              <input
+                id="card-front"
+                type="text"
+                value={cardFront}
+                onChange={(event) => setCardFront(event.target.value)}
+                required
+                autoFocus
+              />
+
+              <label htmlFor="card-back">Back</label>
+              <textarea
+                id="card-back"
+                value={cardBack}
+                onChange={(event) => setCardBack(event.target.value)}
+                required
+              />
+
+              <div className="modal-actions">
+                <button type="button" onClick={() => setIsCardModalOpen(false)}>
+                  Cancel
+                </button>
+                <button type="submit">Add Card</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
