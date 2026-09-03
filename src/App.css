@@ -215,6 +215,15 @@ main > section:nth-child(2) p {
   animation: card-slide-from-left 250ms ease-out;
 }
 
+.flashcard.card-slide-empty {
+  animation: card-empty-in 250ms ease-out;
+}
+
+.flashcard.is-deleting {
+  animation: card-delete-out 280ms ease-out forwards;
+  pointer-events: none;
+}
+
 .flashcard-face {
   position: absolute;
   inset: 0;
@@ -238,6 +247,13 @@ main > section:nth-child(2) p {
   margin: 0;
   overflow-wrap: anywhere;
   text-align: center;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin: 20px 0;
 }
 
 nav {
@@ -372,6 +388,26 @@ nav button:nth-child(2):hover {
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes card-delete-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+}
+
+@keyframes card-empty-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
