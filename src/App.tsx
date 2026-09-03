@@ -108,6 +108,14 @@ export default function App() {
     setIsModalOpen(true);
   }
 
+  function resetStudyView() {
+    setIsFlipped(false);
+    setCurrentCardIndex(0);
+    setCardDirection("");
+    setShufflePhase("");
+    setIsShufflingCards(false);
+  }
+
   function handleSaveDeck(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -124,6 +132,7 @@ export default function App() {
       delete updatedCardsByDeck[activeDeck];
       setCardsByDeck(updatedCardsByDeck);
       setActiveDeck(deckName);
+      resetStudyView();
     }
 
     setNewDeckName("");
@@ -132,8 +141,13 @@ export default function App() {
 
   function handleDeleteDeck() {
     const remainingDecks = decks.filter((deck) => deck !== activeDeck);
+    const updatedCardsByDeck = { ...cardsByDeck };
+    delete updatedCardsByDeck[activeDeck];
+
     setDecks(remainingDecks);
+    setCardsByDeck(updatedCardsByDeck);
     setActiveDeck(remainingDecks[0] ?? "");
+    resetStudyView();
     setIsDeleteModalOpen(false);
   }
 
@@ -222,9 +236,7 @@ export default function App() {
     if (isDeletingCard || isShufflingCards) return;
 
     setActiveDeck(deck);
-    setCurrentCardIndex(0);
-    setIsFlipped(false);
-    setCardDirection("");
+    resetStudyView();
   }
 
   function handlePreviousCard() {
@@ -301,18 +313,37 @@ export default function App() {
   }
 
   useEffect(() => {
-    setIsFlipped(false);
-    setCurrentCardIndex(0);
-    setCardDirection("");
-    setShufflePhase("");
-    setIsShufflingCards(false);
-  }, [activeDeck, searchQuery]);
+    if (
+      !isModalOpen &&
+      !isDeleteModalOpen &&
+      !isCardModalOpen &&
+      !isCardDeleteModalOpen
+    ) {
+      return;
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key !== "Escape") return;
+
+      setIsModalOpen(false);
+      setIsDeleteModalOpen(false);
+      setIsCardModalOpen(false);
+      setIsCardDeleteModalOpen(false);
+    }
+
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [isModalOpen, isDeleteModalOpen, isCardModalOpen, isCardDeleteModalOpen]);
 
   useEffect(() => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ decks, cardsByDeck, activeDeck }),
-    );
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ decks, cardsByDeck, activeDeck }),
+      );
+    } catch {
+      return;
+    }
   }, [decks, cardsByDeck, activeDeck]);
 
   return (
@@ -328,12 +359,14 @@ export default function App() {
           {decks.length > 0 ? (
             <ul>
               {decks.map((deck) => (
-                <li
-                  key={deck}
-                  className={deck === activeDeck ? "active" : ""}
-                  onClick={() => handleSelectDeck(deck)}
-                >
-                  {deck}
+                <li key={deck}>
+                  <button
+                    className={deck === activeDeck ? "active" : ""}
+                    onClick={() => handleSelectDeck(deck)}
+                    aria-current={deck === activeDeck ? "true" : undefined}
+                  >
+                    {deck}
+                  </button>
                 </li>
               ))}
             </ul>
@@ -360,8 +393,12 @@ export default function App() {
                 <input
                   type="search"
                   placeholder="Search cards..."
+                  aria-label="Search cards"
                   value={searchQuery}
-                  onChange={(event) => setSearchQuery(event.target.value)}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    resetStudyView();
+                  }}
                 />
                 <button
                   onClick={handleShuffleCards}
@@ -468,6 +505,7 @@ export default function App() {
                 type="text"
                 value={newDeckName}
                 onChange={(event) => setNewDeckName(event.target.value)}
+                required
                 autoFocus
               />
               <div className="modal-actions">
@@ -497,7 +535,11 @@ export default function App() {
               Are you sure you want to delete &quot;{activeDeck}&quot;?
             </p>
             <div className="modal-actions">
-              <button type="button" onClick={() => setIsDeleteModalOpen(false)}>
+              <button
+                type="button"
+                onClick={() => setIsDeleteModalOpen(false)}
+                autoFocus
+              >
                 Cancel
               </button>
               <button
@@ -572,6 +614,7 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setIsCardDeleteModalOpen(false)}
+                autoFocus
               >
                 Cancel
               </button>

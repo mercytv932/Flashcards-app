@@ -30,6 +30,18 @@ button:hover {
   background: #1d4ed8;
 }
 
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 header {
   display: flex;
   align-items: center;
@@ -81,13 +93,24 @@ aside ul {
 }
 
 aside li {
-  padding: 10px 12px;
-  border-radius: 6px;
-  color: #374151;
-  cursor: pointer;
+  padding: 0;
 }
 
-aside li.active {
+aside li button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  color: #374151;
+  background: transparent;
+  text-align: left;
+}
+
+aside li button:hover {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+aside li button.active {
   color: #1d4ed8;
   background: #dbeafe;
 }
@@ -193,6 +216,11 @@ main > section:nth-child(2) p {
   width: min(100%, 600px);
   height: 260px;
   perspective: 1000px;
+}
+
+.flashcard:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 4px;
 }
 
 .flashcard-inner {
