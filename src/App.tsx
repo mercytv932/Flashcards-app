@@ -26,6 +26,8 @@ export default function App() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isDeletingCard, setIsDeletingCard] = useState(false);
+  const [isShufflingCards, setIsShufflingCards] = useState(false);
+  const [shufflePhase, setShufflePhase] = useState<"out" | "in" | "">("");
   const [cardDirection, setCardDirection] = useState<
     "next" | "previous" | "empty" | ""
   >("");
@@ -146,7 +148,7 @@ export default function App() {
   const currentCard = activeCards[currentCardIndex];
 
   function handleSelectDeck(deck: string) {
-    if (isDeletingCard) return;
+    if (isDeletingCard || isShufflingCards) return;
 
     setActiveDeck(deck);
     setCurrentCardIndex(0);
@@ -155,7 +157,7 @@ export default function App() {
   }
 
   function handlePreviousCard() {
-    if (isDeletingCard || currentCardIndex === 0) return;
+    if (isDeletingCard || isShufflingCards || currentCardIndex === 0) return;
 
     setCurrentCardIndex((index) => index - 1);
     setIsFlipped(false);
@@ -163,15 +165,59 @@ export default function App() {
   }
 
   function handleNextCard() {
-    if (isDeletingCard || currentCardIndex >= activeCards.length - 1) return;
+    if (
+      isDeletingCard ||
+      isShufflingCards ||
+      currentCardIndex >= activeCards.length - 1
+    )
+      return;
 
     setCurrentCardIndex((index) => index + 1);
     setIsFlipped(false);
     setCardDirection("next");
   }
 
+  function handleShuffleCards() {
+    if (isDeletingCard || isShufflingCards || activeCards.length === 0) return;
+
+    function applyShuffle() {
+      const shuffledCards = [...activeCards];
+      for (let index = shuffledCards.length - 1; index > 0; index -= 1) {
+        const randomIndex = Math.floor(Math.random() * (index + 1));
+        [shuffledCards[index], shuffledCards[randomIndex]] = [
+          shuffledCards[randomIndex],
+          shuffledCards[index],
+        ];
+      }
+
+      setCardsByDeck({ ...cardsByDeck, [activeDeck]: shuffledCards });
+      setCurrentCardIndex(0);
+      setIsFlipped(false);
+      setCardDirection("");
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) {
+      applyShuffle();
+      return;
+    }
+
+    setIsShufflingCards(true);
+    setShufflePhase("out");
+    window.setTimeout(() => {
+      applyShuffle();
+      setShufflePhase("in");
+      window.setTimeout(() => {
+        setShufflePhase("");
+        setIsShufflingCards(false);
+      }, 180);
+    }, 180);
+  }
+
   function handleFlipCard() {
-    if (!currentCard || isDeletingCard) return;
+    if (!currentCard || isDeletingCard || isShufflingCards) return;
 
     setIsFlipped((flipped) => !flipped);
   }
@@ -187,6 +233,8 @@ export default function App() {
     setIsFlipped(false);
     setCurrentCardIndex(0);
     setCardDirection("");
+    setShufflePhase("");
+    setIsShufflingCards(false);
   }, [activeDeck]);
 
   return (
@@ -232,7 +280,12 @@ export default function App() {
                 </div>
 
                 <input type="search" placeholder="Search cards..." />
-                <button>Shuffle</button>
+                <button
+                  onClick={handleShuffleCards}
+                  disabled={!currentCard || isDeletingCard}
+                >
+                  Shuffle
+                </button>
                 <button onClick={openNewCardModal}>New Card</button>
               </section>
 
@@ -243,6 +296,8 @@ export default function App() {
                     isFlipped ? "is-flipped" : ""
                   } card-slide-${cardDirection} ${
                     isDeletingCard ? "is-deleting" : ""
+                  } card-shuffle-${shufflePhase} ${
+                    isShufflingCards ? "is-shuffling" : ""
                   }`}
                   role="button"
                   tabIndex={currentCard ? 0 : -1}

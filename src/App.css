@@ -224,6 +224,18 @@ main > section:nth-child(2) p {
   pointer-events: none;
 }
 
+.flashcard.is-shuffling {
+  pointer-events: none;
+}
+
+.flashcard.card-shuffle-out {
+  animation: card-shuffle-out 180ms ease-out forwards;
+}
+
+.flashcard.card-shuffle-in {
+  animation: card-shuffle-in 180ms ease-out;
+}
+
 .flashcard-face {
   position: absolute;
   inset: 0;
@@ -408,6 +420,28 @@ nav button:nth-child(2):hover {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes card-shuffle-out {
+  from {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-8px) rotate(-1deg) scale(0.97);
+  }
+}
+
+@keyframes card-shuffle-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px) rotate(1deg) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotate(0) scale(1);
   }
 }
 
