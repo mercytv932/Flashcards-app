@@ -4,6 +4,7 @@ export default function App() {
   const [decks, setDecks] = useState(["JavaScript", "React", "TypeScript"]);
   const [activeDeck, setActiveDeck] = useState("JavaScript");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"new" | "edit">("new");
   const [newDeckName, setNewDeckName] = useState("");
 
@@ -36,6 +37,13 @@ export default function App() {
     setIsModalOpen(false);
   }
 
+  function handleDeleteDeck() {
+    const remainingDecks = decks.filter((deck) => deck !== activeDeck);
+    setDecks(remainingDecks);
+    setActiveDeck(remainingDecks[0] ?? "");
+    setIsDeleteModalOpen(false);
+  }
+
   return (
     <div className="App">
       <header>
@@ -46,42 +54,58 @@ export default function App() {
       <div className="app-layout">
         <aside>
           <h2>Decks</h2>
-          <ul>
-            {decks.map((deck) => (
-              <li
-                key={deck}
-                className={deck === activeDeck ? "active" : ""}
-                onClick={() => setActiveDeck(deck)}
-              >
-                {deck}
-              </li>
-            ))}
-          </ul>
+          {decks.length > 0 ? (
+            <ul>
+              {decks.map((deck) => (
+                <li
+                  key={deck}
+                  className={deck === activeDeck ? "active" : ""}
+                  onClick={() => setActiveDeck(deck)}
+                >
+                  {deck}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty-state">No decks yet.</p>
+          )}
         </aside>
 
         <main>
-          <section>
-            <div className="deck-title-row">
-              <h2>{activeDeck}</h2>
-              <button onClick={openEditDeckModal}>Edit Deck</button>
-            </div>
+          {activeDeck ? (
+            <>
+              <section>
+                <div className="deck-title-row">
+                  <h2>{activeDeck}</h2>
+                  <button onClick={openEditDeckModal}>Edit Deck</button>
+                  <button
+                    className="delete-button"
+                    onClick={() => setIsDeleteModalOpen(true)}
+                  >
+                    Delete Deck
+                  </button>
+                </div>
 
-            <input type="search" placeholder="Search cards..." />
-            <button>Shuffle</button>
-            <button>New Card</button>
-          </section>
+                <input type="search" placeholder="Search cards..." />
+                <button>Shuffle</button>
+                <button>New Card</button>
+              </section>
 
-          <section>
-            <div>
-              <p>Flashcard question goes here.</p>
-            </div>
-          </section>
+              <section>
+                <div>
+                  <p>Flashcard question goes here.</p>
+                </div>
+              </section>
 
-          <nav>
-            <button>Previous</button>
-            <button>Flip</button>
-            <button>Next</button>
-          </nav>
+              <nav>
+                <button>Previous</button>
+                <button>Flip</button>
+                <button>Next</button>
+              </nav>
+            </>
+          ) : (
+            <p className="main-empty-state">Create a deck to start studying.</p>
+          )}
         </main>
       </div>
 
@@ -114,6 +138,35 @@ export default function App() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {isDeleteModalOpen && (
+        <div className="modal-backdrop">
+          <div
+            className="modal"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="delete-deck-title"
+            aria-describedby="delete-deck-message"
+          >
+            <h2 id="delete-deck-title">Delete Deck?</h2>
+            <p id="delete-deck-message" className="delete-modal-message">
+              Are you sure you want to delete &quot;{activeDeck}&quot;?
+            </p>
+            <div className="modal-actions">
+              <button type="button" onClick={() => setIsDeleteModalOpen(false)}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="danger-button"
+                onClick={handleDeleteDeck}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -124,6 +124,38 @@ main h2 {
   flex: 1;
 }
 
+.delete-button {
+  border-color: #dc2626;
+  background: #dc2626;
+}
+
+.delete-button:hover {
+  background: #b91c1c;
+}
+
+.danger-button {
+  border-color: #dc2626;
+  background: #dc2626;
+}
+
+.danger-button:hover {
+  background: #b91c1c;
+}
+
+.empty-state,
+.main-empty-state {
+  color: #6b7280;
+}
+
+.main-empty-state {
+  margin: 0;
+  padding: 80px 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  text-align: center;
+}
+
 input[type="search"] {
   min-width: 220px;
   flex: 1;
@@ -180,6 +212,7 @@ nav button:nth-child(2):hover {
   justify-content: center;
   padding: 20px;
   background: rgb(15 23 42 / 45%);
+  animation: fade-in 250ms ease-out;
 }
 
 .modal {
@@ -188,11 +221,17 @@ nav button:nth-child(2):hover {
   border-radius: 8px;
   background: #ffffff;
   box-shadow: 0 8px 24px rgb(15 23 42 / 20%);
+  animation: modal-in 250ms ease-out;
 }
 
 .modal h2 {
   margin: 0 0 20px;
   font-size: 1.4rem;
+}
+
+.delete-modal-message {
+  margin: 0;
+  line-height: 1.5;
 }
 
 .modal form {
@@ -219,6 +258,13 @@ nav button:nth-child(2):hover {
   margin-top: 16px;
 }
 
+.modal-actions button {
+  transition:
+    background-color 250ms ease-out,
+    border-color 250ms ease-out,
+    color 250ms ease-out;
+}
+
 .modal-actions button:first-child {
   color: #374151;
   border-color: #cbd5e1;
@@ -227,6 +273,37 @@ nav button:nth-child(2):hover {
 
 .modal-actions button:first-child:hover {
   background: #f3f4f6;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop,
+  .modal {
+    animation: none;
+  }
+
+  .modal-actions button {
+    transition: none;
+  }
 }
 
 @media (max-width: 640px) {
