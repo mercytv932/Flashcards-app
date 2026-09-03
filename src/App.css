@@ -207,6 +207,14 @@ main > section:nth-child(2) p {
   transform: rotateY(180deg);
 }
 
+.flashcard.card-slide-next {
+  animation: card-slide-from-right 250ms ease-out;
+}
+
+.flashcard.card-slide-previous {
+  animation: card-slide-from-left 250ms ease-out;
+}
+
 .flashcard-face {
   position: absolute;
   inset: 0;
@@ -338,9 +346,32 @@ nav button:nth-child(2):hover {
   }
 }
 
+@keyframes card-slide-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes card-slide-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .modal-backdrop,
-  .modal {
+  .modal,
+  .flashcard {
     animation: none;
   }
 

@@ -22,6 +22,10 @@ export default function App() {
   const [cardFront, setCardFront] = useState("");
   const [cardBack, setCardBack] = useState("");
   const [isFlipped, setIsFlipped] = useState(false);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [cardDirection, setCardDirection] = useState<"next" | "previous" | "">(
+    "",
+  );
 
   function openNewDeckModal() {
     setModalMode("new");
@@ -87,11 +91,49 @@ export default function App() {
   }
 
   const activeCards = cardsByDeck[activeDeck] ?? [];
-  const currentCard = activeCards[0];
+  const currentCard = activeCards[currentCardIndex];
+
+  function handleSelectDeck(deck: string) {
+    setActiveDeck(deck);
+    setCurrentCardIndex(0);
+    setIsFlipped(false);
+    setCardDirection("");
+  }
+
+  function handlePreviousCard() {
+    if (currentCardIndex === 0) return;
+
+    setCurrentCardIndex((index) => index - 1);
+    setIsFlipped(false);
+    setCardDirection("previous");
+  }
+
+  function handleNextCard() {
+    if (currentCardIndex >= activeCards.length - 1) return;
+
+    setCurrentCardIndex((index) => index + 1);
+    setIsFlipped(false);
+    setCardDirection("next");
+  }
+
+  function handleFlipCard() {
+    if (!currentCard) return;
+
+    setIsFlipped((flipped) => !flipped);
+  }
+
+  function handleCardKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== "Enter" && event.key !== " ") return;
+
+    event.preventDefault();
+    handleFlipCard();
+  }
 
   useEffect(() => {
     setIsFlipped(false);
-  }, [activeDeck, currentCard]);
+    setCurrentCardIndex(0);
+    setCardDirection("");
+  }, [activeDeck]);
 
   return (
     <div className="App">
@@ -109,7 +151,7 @@ export default function App() {
                 <li
                   key={deck}
                   className={deck === activeDeck ? "active" : ""}
-                  onClick={() => setActiveDeck(deck)}
+                  onClick={() => handleSelectDeck(deck)}
                 >
                   {deck}
                 </li>
@@ -141,7 +183,18 @@ export default function App() {
               </section>
 
               <section>
-                <div className={`flashcard ${isFlipped ? "is-flipped" : ""}`}>
+                <div
+                  key={`${activeDeck}-${currentCardIndex}-${cardDirection}`}
+                  className={`flashcard ${
+                    isFlipped ? "is-flipped" : ""
+                  } card-slide-${cardDirection}`}
+                  role="button"
+                  tabIndex={currentCard ? 0 : -1}
+                  aria-label={isFlipped ? "Show card front" : "Show card back"}
+                  aria-disabled={!currentCard}
+                  onClick={handleFlipCard}
+                  onKeyDown={handleCardKeyDown}
+                >
                   <div className="flashcard-inner">
                     <div className="flashcard-face flashcard-front">
                       <p>{currentCard?.front ?? "No cards yet."}</p>
@@ -154,15 +207,27 @@ export default function App() {
               </section>
 
               <nav>
-                <button>Previous</button>
                 <button
-                  onClick={() => setIsFlipped((flipped) => !flipped)}
+                  onClick={handlePreviousCard}
+                  disabled={currentCardIndex === 0}
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={handleFlipCard}
                   disabled={!currentCard}
                   aria-pressed={isFlipped}
                 >
                   Flip
                 </button>
-                <button>Next</button>
+                <button
+                  onClick={handleNextCard}
+                  disabled={
+                    !currentCard || currentCardIndex === activeCards.length - 1
+                  }
+                >
+                  Next
+                </button>
               </nav>
             </>
           ) : (
