@@ -23,6 +23,7 @@ export default function App() {
   const [newDeckName, setNewDeckName] = useState("");
   const [cardFront, setCardFront] = useState("");
   const [cardBack, setCardBack] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isFlipped, setIsFlipped] = useState(false);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isDeletingCard, setIsDeletingCard] = useState(false);
@@ -100,7 +101,9 @@ export default function App() {
     if (cardModalMode === "new") {
       updatedCards.push({ front, back });
     } else {
-      updatedCards[currentCardIndex] = { front, back };
+      const originalCardIndex = activeCards.indexOf(currentCard);
+      if (originalCardIndex === -1) return;
+      updatedCards[originalCardIndex] = { front, back };
     }
 
     setCardsByDeck({ ...cardsByDeck, [activeDeck]: updatedCards });
@@ -111,14 +114,12 @@ export default function App() {
   }
 
   function removeCurrentCard() {
-    const updatedCards = activeCards.filter(
-      (_card, index) => index !== currentCardIndex,
-    );
-    const nextCardIndex = Math.min(currentCardIndex, updatedCards.length - 1);
+    const updatedCards = activeCards.filter((card) => card !== currentCard);
+    const nextCardIndex = Math.min(currentCardIndex, filteredCards.length - 2);
     const nextDirection =
-      updatedCards.length === 0
+      filteredCards.length === 1
         ? "empty"
-        : currentCardIndex < activeCards.length - 1
+        : currentCardIndex < filteredCards.length - 1
           ? "next"
           : "previous";
 
@@ -145,7 +146,14 @@ export default function App() {
   }
 
   const activeCards = cardsByDeck[activeDeck] ?? [];
-  const currentCard = activeCards[currentCardIndex];
+  const searchText = searchQuery.trim().toLowerCase();
+  const filteredCards = activeCards.filter(
+    (card) =>
+      !searchText ||
+      card.front.toLowerCase().includes(searchText) ||
+      card.back.toLowerCase().includes(searchText),
+  );
+  const currentCard = filteredCards[currentCardIndex];
 
   function handleSelectDeck(deck: string) {
     if (isDeletingCard || isShufflingCards) return;
@@ -168,7 +176,7 @@ export default function App() {
     if (
       isDeletingCard ||
       isShufflingCards ||
-      currentCardIndex >= activeCards.length - 1
+      currentCardIndex >= filteredCards.length - 1
     )
       return;
 
@@ -235,7 +243,7 @@ export default function App() {
     setCardDirection("");
     setShufflePhase("");
     setIsShufflingCards(false);
-  }, [activeDeck]);
+  }, [activeDeck, searchQuery]);
 
   return (
     <div className="App">
@@ -279,7 +287,12 @@ export default function App() {
                   </button>
                 </div>
 
-                <input type="search" placeholder="Search cards..." />
+                <input
+                  type="search"
+                  placeholder="Search cards..."
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                />
                 <button
                   onClick={handleShuffleCards}
                   disabled={!currentCard || isDeletingCard}
@@ -308,10 +321,16 @@ export default function App() {
                 >
                   <div className="flashcard-inner">
                     <div className="flashcard-face flashcard-front">
-                      <p>{currentCard?.front ?? "No cards yet."}</p>
+                      <p>
+                        {currentCard?.front ??
+                          (searchText ? "No cards found." : "No cards yet.")}
+                      </p>
                     </div>
                     <div className="flashcard-face flashcard-back">
-                      <p>{currentCard?.back ?? "No cards yet."}</p>
+                      <p>
+                        {currentCard?.back ??
+                          (searchText ? "No cards found." : "No cards yet.")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -347,7 +366,8 @@ export default function App() {
                 <button
                   onClick={handleNextCard}
                   disabled={
-                    !currentCard || currentCardIndex === activeCards.length - 1
+                    !currentCard ||
+                    currentCardIndex === filteredCards.length - 1
                   }
                 >
                   Next
