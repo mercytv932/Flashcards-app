@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 type Card = {
@@ -21,6 +21,7 @@ export default function App() {
   const [newDeckName, setNewDeckName] = useState("");
   const [cardFront, setCardFront] = useState("");
   const [cardBack, setCardBack] = useState("");
+  const [isFlipped, setIsFlipped] = useState(false);
 
   function openNewDeckModal() {
     setModalMode("new");
@@ -86,6 +87,11 @@ export default function App() {
   }
 
   const activeCards = cardsByDeck[activeDeck] ?? [];
+  const currentCard = activeCards[0];
+
+  useEffect(() => {
+    setIsFlipped(false);
+  }, [activeDeck, currentCard]);
 
   return (
     <div className="App">
@@ -135,14 +141,27 @@ export default function App() {
               </section>
 
               <section>
-                <div>
-                  <p>{activeCards[0]?.front ?? "No cards yet."}</p>
+                <div className={`flashcard ${isFlipped ? "is-flipped" : ""}`}>
+                  <div className="flashcard-inner">
+                    <div className="flashcard-face flashcard-front">
+                      <p>{currentCard?.front ?? "No cards yet."}</p>
+                    </div>
+                    <div className="flashcard-face flashcard-back">
+                      <p>{currentCard?.back ?? "No cards yet."}</p>
+                    </div>
+                  </div>
                 </div>
               </section>
 
               <nav>
                 <button>Previous</button>
-                <button>Flip</button>
+                <button
+                  onClick={() => setIsFlipped((flipped) => !flipped)}
+                  disabled={!currentCard}
+                  aria-pressed={isFlipped}
+                >
+                  Flip
+                </button>
                 <button>Next</button>
               </nav>
             </>
