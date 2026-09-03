@@ -84,9 +84,10 @@ aside li {
   padding: 10px 12px;
   border-radius: 6px;
   color: #374151;
+  cursor: pointer;
 }
 
-aside li:first-child {
+aside li.active {
   color: #1d4ed8;
   background: #dbeafe;
 }
@@ -105,10 +106,22 @@ main > section:first-child {
   flex-wrap: wrap;
 }
 
+.deck-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
 main h2 {
   flex: 1 0 100%;
   margin: 0 0 4px;
   font-size: 1.75rem;
+}
+
+.deck-title-row h2 {
+  flex: 1;
 }
 
 input[type="search"] {
