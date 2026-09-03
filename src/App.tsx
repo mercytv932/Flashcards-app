@@ -6,14 +6,77 @@ type Card = {
   back: string;
 };
 
+type SavedAppData = {
+  decks: string[];
+  cardsByDeck: Record<string, Card[]>;
+  activeDeck: string;
+};
+
+const STORAGE_KEY = "flashcards-app-data";
+
+function loadSavedData(): SavedAppData {
+  const defaultData: SavedAppData = {
+    decks: ["JavaScript", "React", "TypeScript"],
+    cardsByDeck: {
+      JavaScript: [],
+      React: [],
+      TypeScript: [],
+    },
+    activeDeck: "JavaScript",
+  };
+
+  try {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (!savedData) return defaultData;
+
+    const parsedData = JSON.parse(savedData);
+    if (
+      !Array.isArray(parsedData.decks) ||
+      !parsedData.decks.every((deck: unknown) => typeof deck === "string") ||
+      !parsedData.cardsByDeck ||
+      typeof parsedData.cardsByDeck !== "object"
+    ) {
+      return defaultData;
+    }
+
+    const decks = parsedData.decks as string[];
+    const cardsByDeck: Record<string, Card[]> = {};
+
+    for (const deck of decks) {
+      const cards = parsedData.cardsByDeck[deck];
+      cardsByDeck[deck] = Array.isArray(cards)
+        ? cards.filter(
+            (card: unknown): card is Card =>
+              Boolean(card) &&
+              typeof card === "object" &&
+              typeof (card as Card).front === "string" &&
+              typeof (card as Card).back === "string",
+          )
+        : [];
+    }
+
+    return {
+      decks,
+      cardsByDeck,
+      activeDeck:
+        typeof parsedData.activeDeck === "string" &&
+        decks.includes(parsedData.activeDeck)
+          ? parsedData.activeDeck
+          : (decks[0] ?? ""),
+    };
+  } catch {
+    return defaultData;
+  }
+}
+
+const initialData = loadSavedData();
+
 export default function App() {
-  const [decks, setDecks] = useState(["JavaScript", "React", "TypeScript"]);
-  const [cardsByDeck, setCardsByDeck] = useState<Record<string, Card[]>>({
-    JavaScript: [],
-    React: [],
-    TypeScript: [],
-  });
-  const [activeDeck, setActiveDeck] = useState("JavaScript");
+  const [decks, setDecks] = useState(initialData.decks);
+  const [cardsByDeck, setCardsByDeck] = useState<Record<string, Card[]>>(
+    initialData.cardsByDeck,
+  );
+  const [activeDeck, setActiveDeck] = useState(initialData.activeDeck);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isCardModalOpen, setIsCardModalOpen] = useState(false);
@@ -244,6 +307,13 @@ export default function App() {
     setShufflePhase("");
     setIsShufflingCards(false);
   }, [activeDeck, searchQuery]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ decks, cardsByDeck, activeDeck }),
+    );
+  }, [decks, cardsByDeck, activeDeck]);
 
   return (
     <div className="App">
